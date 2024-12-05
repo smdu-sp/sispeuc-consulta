@@ -11,7 +11,8 @@ export class CadastrosService {
   async buscarTudo(
     pagina: number = 1,
     limite: number = 10,
-    busca?: string
+    busca?: string,
+    sistema?: string
   ) {
     [pagina, limite] = this.app.verificaPagina(pagina, limite);
     const searchParams = {
@@ -19,6 +20,7 @@ export class CadastrosService {
         { OR: [
             { sql_incra: { contains: this.app.formatarSql(busca)}},
         ] }),
+      ...(sistema && sistema !== "" && { sistema: sistema }),
     };
     const total = await this.bi.cadastros.count({ where: searchParams });
     if (total == 0) return { total: 0, pagina: 0, limite: 0, users: [] };
@@ -46,12 +48,12 @@ export class CadastrosService {
   }
 
   async buscarLista(
-    listaSql: string[]
+    sqls: string[]
   ) {
-    if (listaSql.length >= 0)
+    if (sqls.length <= 0)
       throw new BadRequestException('Lista de SQL vazia.');
     const resposta = [];
-    for (const sql of listaSql) {
+    for (const sql of sqls) {
       const cadastro = await this.bi.cadastros.findMany({
         where: {
           sql_incra: this.app.formatarSql(sql)
@@ -67,9 +69,20 @@ export class CadastrosService {
         },
       });
       resposta.push({
-        sql,
+        sql: this.app.formatarSql(sql),
         dadosEncontrados: cadastro || []
       });
     }
+    return resposta;
+  }
+
+  async buscaListaSistemas() {
+    const sistemas = await this.bi.cadastros.findMany({
+      distinct: ['sistema'],
+      select: {
+        sistema: true
+      }
+    })
+    return sistemas;
   }
 }
