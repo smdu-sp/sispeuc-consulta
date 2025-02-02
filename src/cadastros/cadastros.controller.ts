@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { CadastrosService } from './cadastros.service';
 import { IsPublic } from 'src/auth/decorators/is-public.decorator';
 import { ListaSql } from './dto/cadastros.dto';
@@ -17,12 +17,12 @@ export class CadastrosController {
     return this.cadastrosService.buscarTudo(+pagina, +limite, busca, sistema);
   }
 
-  @Get('buscar-lista-sql')
+  @Post('buscar-lista-sql')
   buscarLista(
-    @Body() listaSql: ListaSql
+    @Body() body: { listaSql: string[] }
   ) {
-    console.log(listaSql.sqls)
-    return this.cadastrosService.buscarLista(listaSql.sqls);
+    console.log(body.listaSql);
+    return this.cadastrosService.buscarLista(body.listaSql);
   }
 
   @IsPublic()

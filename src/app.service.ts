@@ -20,13 +20,27 @@ export class AppService {
     //111.111.1111-1
     if (!value) return value;
     const onlyNumbers = value && value.toString().replace(/\D/g, '').substring(0, 11);
-    if (onlyNumbers.length <= 3)
-        return onlyNumbers.replace(/(\d{0,3})/, '$1');
-    if (onlyNumbers.length <= 6)
-        return onlyNumbers.replace(/(\d{0,3})(\d{0,3})/, '$1.$2');
-    if (onlyNumbers.length <= 10)
-        return onlyNumbers.replace(/(\d{0,3})(\d{0,3})(\d{0,4})/, '$1.$2.$3');
+    if (onlyNumbers.length <= 3){
+      return onlyNumbers.replace(/(\d{0,3})/, '$1');
+    }
+    if (onlyNumbers.length <= 6){
+      return onlyNumbers.replace(/(\d{0,3})(\d{0,3})/, '$1.$2');
+    }
+    if (onlyNumbers.length <= 10){
+      return onlyNumbers.replace(/(\d{0,3})(\d{0,3})(\d{0,4})/, '$1.$2.$3');
+    }
     return onlyNumbers.replace(/(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,1})/, '$1.$2.$3-$4');
+  }
+
+  adicionaDigitoSql(sqlNumero: string): string {
+      sqlNumero = sqlNumero && sqlNumero.toString().replace(/\D/g, '').substring(0, 11);
+      var soma = 0;
+      const verificador = [1, 10, 9, 8, 7, 6, 5, 4, 3, 2];
+      for (let i = 0; i < 10; i++) soma += parseInt(sqlNumero.toString()[i]) * verificador[i];
+      soma = soma % 11;
+      if (soma === 10) soma = 1;
+      if (soma > 1 && soma < 10) soma = 11 - soma;
+      return this.formatarSql(sqlNumero.toString() + soma.toString());
   }
 
   formatarSqlCondominio(value: string): string {

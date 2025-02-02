@@ -18,7 +18,7 @@ export class CadastrosService {
     const searchParams = {
       ...(busca && busca !== "" &&
         { OR: [
-            { sql_incra: { contains: this.app.formatarSql(busca)}},
+            { sql_incra: { startsWith: this.app.formatarSql(busca)}},
         ] }),
       ...(sistema && sistema !== "" && { sistema: sistema }),
     };
@@ -53,26 +53,56 @@ export class CadastrosService {
     if (sqls.length <= 0)
       throw new BadRequestException('Lista de SQL vazia.');
     const resposta = [];
+    let progresso = 0;
+    const dataRelatorio = new Date();
     for (const sql of sqls) {
+      const sqlFormatado = this.app.adicionaDigitoSql(sql)
       const cadastro = await this.bi.cadastros.findMany({
         where: {
-          sql_incra: this.app.formatarSql(sql)
+          sql_incra: { startsWith: sqlFormatado }
         },
         orderBy: {
           assunto: {
             dtInclusaoAssunto: 'desc'
           }
         },
-        include: { 
-          assunto: true,
-          endereco: true
-        },
+        select: {
+          sql_incra: true,
+          processo: true,
+          sistema: true,
+          //falta coordenadoria,
+          assunto: {
+            select: {
+              assunto: true,
+              dtInclusaoAssunto: true,
+              situacaoAssunto: true,
+              dtEmissaoDocumento: true,
+            }
+          }
+        }
       });
-      resposta.push({
-        sql: this.app.formatarSql(sql),
-        dadosEncontrados: cadastro || []
-      });
+
+      if (cadastro.length > 0){
+        cadastro.map((cad, index) => {
+          resposta.push({
+            'SQL': cad.sql_incra,
+            'Processo': cad.processo && cad.processo,
+            'Sistema': cad.sistema && cad.sistema,
+            'Assunto': cad.assunto && cad.assunto.assunto,
+            'Situação': cad.assunto && cad.assunto.situacaoAssunto,
+            'Data de Inclusão': cad.assunto && new Date(cad.assunto.dtInclusaoAssunto).toLocaleDateString(),
+            'Data de Encerramento': cad.assunto && cad.assunto.dtEmissaoDocumento && new Date(cad.assunto.dtEmissaoDocumento).toLocaleDateString(),
+          })
+        });
+      } else {
+        resposta.push({
+          'SQL': sqlFormatado,
+          'Processo': 'Nenhum processo encontrado',
+        })
+      }
     }
+    if (resposta.length > 0)
+      resposta[0]['Data do relatório'] = `${dataRelatorio.toLocaleDateString()} ${dataRelatorio.toLocaleTimeString()}`;
     return resposta;
   }
 
