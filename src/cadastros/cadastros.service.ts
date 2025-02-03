@@ -114,6 +114,7 @@ export class CadastrosService {
     sqls: string[]
   ) {
     const sqls_formatados = sqls.map(sql => this.app.adicionaDigitoSql(sql));
+    const dataRelatorio = new Date();
     const cadastros = await this.bi.cadastros.findMany({
       where: {
         sql_incra: { in: sqls_formatados }
@@ -161,6 +162,9 @@ export class CadastrosService {
         })
       }
     });
+
+    if (resposta.length > 0)
+      resposta[0]['Data do relatório'] = `${dataRelatorio.toLocaleDateString('pt-BR')} ${dataRelatorio.toLocaleTimeString('pt-BR')}`;
     
     return resposta;
   }
