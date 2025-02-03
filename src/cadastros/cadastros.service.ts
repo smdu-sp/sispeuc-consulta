@@ -33,7 +33,11 @@ export class CadastrosService {
         }
       },
       include: { 
-        assunto: true,
+        assunto: {
+          include: {
+            categoria: true
+          }
+        },
         endereco: true
       },
       skip: (pagina - 1) * limite,
@@ -102,7 +106,62 @@ export class CadastrosService {
       }
     }
     if (resposta.length > 0)
-      resposta[0]['Data do relatório'] = `${dataRelatorio.toLocaleDateString()} ${dataRelatorio.toLocaleTimeString()}`;
+      resposta[0]['Data do relatório'] = `${dataRelatorio.toLocaleDateString('pt-BR')} ${dataRelatorio.toLocaleTimeString('pt-BR')}`;
+    return resposta;
+  }
+
+  async buscaListaSQLMulti(
+    sqls: string[]
+  ) {
+    const sqls_formatados = sqls.map(sql => this.app.adicionaDigitoSql(sql));
+    const cadastros = await this.bi.cadastros.findMany({
+      where: {
+        sql_incra: { in: sqls_formatados }
+      },
+      orderBy: {
+        sql_incra: 'asc'
+      },
+      select: {
+        sql_incra: true,
+        processo: true,
+        sistema: true,
+        //falta coordenadoria,
+        assunto: {
+          select: {
+            assunto: true,
+            dtInclusaoAssunto: true,
+            situacaoAssunto: true,
+            dtEmissaoDocumento: true
+          }
+        }
+      }
+    });
+
+    const resposta = [];
+
+    if (cadastros.length > 0){
+      cadastros.map(cad => {
+        resposta.push({
+          'SQL': cad.sql_incra,
+          'Processo': cad.processo && cad.processo,
+          'Sistema': cad.sistema && cad.sistema,
+          'Assunto': cad.assunto && cad.assunto.assunto,
+          'Situação': cad.assunto && cad.assunto.situacaoAssunto,
+          'Data de Inclusão': cad.assunto && new Date(cad.assunto.dtInclusaoAssunto).toLocaleDateString(),
+          'Data de Encerramento': cad.assunto && cad.assunto.dtEmissaoDocumento && new Date(cad.assunto.dtEmissaoDocumento).toLocaleDateString(),
+        })
+      });
+    }
+
+    sqls_formatados.map(sql => {
+      if (!resposta.find(cad => cad['SQL'] === sql)){
+        resposta.push({
+          'SQL': sql,
+          'Processo': 'Nenhum processo encontrado',
+        })
+      }
+    });
+    
     return resposta;
   }
 

@@ -63,6 +63,7 @@ model Assuntos {
   dtcarga              DateTime? @db.DateTime
 
   cadastro             Cadastros? @relation(fields: [id_prata_assunto], references: [id_prata_assunto])
+  categoria            Categorias?
 
   @@index([sistema, processo, codigoAssunto], map: "Idx-20241111")
 }
@@ -169,8 +170,8 @@ model Cadastros_Filiacoes {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model Categorias {
-  id_prata_categoria BigInt?   @unique(map: "Idx-20241113", clustered: true)
-  id_prata_assunto   BigInt?
+  id_prata_categoria BigInt    @unique(map: "Idx-20241113", clustered: true)
+  id_prata_assunto   BigInt    @unique
   sistema            String?   @db.VarChar(20)
   processo           String?   @db.VarChar(20)
   protocolo          String?   @db.VarChar(20)
@@ -189,9 +190,10 @@ model Categorias {
   areaComputavel     String?   @db.VarChar(20)
   areaNaoComputavel  String?   @db.VarChar(20)
 
+  assunto            Assuntos? @relation(fields: [id_prata_assunto], references: [id_prata_assunto])
+
   @@index([sistema, processo, codigoAssunto], map: "NonClusteredIndex-20241113-163408")
   @@index([id_prata_assunto], map: "NonClusteredIndex-20241121-152012")
-  @@ignore
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
