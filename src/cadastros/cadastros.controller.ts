@@ -21,7 +21,7 @@ export class CadastrosController {
   buscarLista(
     @Body() body: { listaSql: string[] }
   ) {
-    return this.cadastrosService.buscaListaSQLMulti(body.listaSql);
+    return this.cadastrosService.buscaListaSQLTabela(body.listaSql);
   }
 
   @IsPublic()

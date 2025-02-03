@@ -113,7 +113,14 @@ export class CadastrosService {
   async buscaListaSQLMulti(
     sqls: string[]
   ) {
-    const sqls_formatados = sqls.map(sql => this.app.adicionaDigitoSql(sql));
+    const sqls_formatados = [];
+
+    sqls.map(sql => {
+      const sql_formatado = this.app.adicionaDigitoSql(sql);
+      if (!sqls_formatados.includes(sql_formatado))
+        sqls_formatados.push(sql_formatado);
+    });
+
     const dataRelatorio = new Date();
     const cadastros = await this.bi.cadastros.findMany({
       where: {
@@ -163,9 +170,75 @@ export class CadastrosService {
       }
     });
 
-    if (resposta.length > 0)
+    if (resposta.length > 0) {
       resposta[0]['Data do relatório'] = `${dataRelatorio.toLocaleDateString('pt-BR')} ${dataRelatorio.toLocaleTimeString('pt-BR')}`;
+    }
     
+    return resposta;
+  }
+
+  async buscaListaSQLTabela(
+    sqls: string[]
+  ) {
+    var sqls_formatados = [];
+
+    sqls.map(sql => {
+      const sql_formatado = this.app.adicionaDigitoSql(sql);
+      if (!sqls_formatados.includes(sql_formatado))
+        sqls_formatados.push(sql_formatado);
+    });
+
+    // const dataRelatorio = new Date();
+    const cadastros = await this.bi.cadastros.findMany({
+      where: {
+        sql_incra: { in: sqls_formatados }
+      },
+      orderBy: {
+        sql_incra: 'asc'
+      },
+      select: {
+        sql_incra: true,
+        processo: true,
+        sistema: true,
+        //falta coordenadoria,
+        assunto: {
+          select: {
+            assunto: true,
+            dtInclusaoAssunto: true,
+            situacaoAssunto: true,
+            dtEmissaoDocumento: true
+          }
+        }
+      }
+    });
+
+    const resposta = [];
+    sqls_formatados.sort();
+    sqls_formatados.map(sql => {
+      var processos = cadastros.filter(cad => cad.sql_incra === sql);
+      processos = processos.sort((a, b) => {
+        const dateA = a.assunto && a.assunto.dtInclusaoAssunto ? a.assunto.dtInclusaoAssunto : new Date();
+        const dateB = b.assunto && b.assunto.dtInclusaoAssunto ? b.assunto.dtInclusaoAssunto : new Date();
+        return dateA.getTime() - dateB.getTime();
+      });
+      const sql_processos = {
+        sql,
+        processos: processos.length > 0 ?
+          processos.map(cad => ({
+            processo: cad.processo,
+            sistema: cad.sistema,
+            assunto: cad.assunto && cad.assunto.assunto,
+            situacao: cad.assunto && cad.assunto.situacaoAssunto,
+            dataInclusao: cad.assunto && new Date(cad.assunto.dtInclusaoAssunto).toLocaleDateString(),
+            dataEncerramento: cad.assunto && cad.assunto.dtEmissaoDocumento && new Date(cad.assunto.dtEmissaoDocumento).toLocaleDateString()
+          }))
+        : [{
+          processo: 'Nenhum processo encontrado'
+        }]
+      }
+      resposta.push(sql_processos);
+    });
+
     return resposta;
   }
 
