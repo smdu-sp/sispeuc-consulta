@@ -85,8 +85,8 @@ export class UsuariosController {
   }
 
   @Permissoes('ADM', 'SUP')
-  @Get('buscar-novo')
-  buscarNovo(@Query('login') login: string): Promise<BuscarNovoResponseDTO> {
+  @Get('buscar-novo/:login')
+  buscarNovo(@Param('login') login: string): Promise<BuscarNovoResponseDTO> {
     return this.usuariosService.buscarNovo(login);
   }
 }

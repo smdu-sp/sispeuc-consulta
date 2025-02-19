@@ -1,9 +1,9 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Global,
   Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
+  InternalServerErrorException
 } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -200,7 +200,7 @@ export class UsuariosService {
       client.bind(`${process.env.USER_LDAP}${process.env.LDAP_DOMAIN}`, process.env.PASS_LDAP, (err) => {
         if (err) {
           client.destroy();
-          reject(new UnauthorizedException('Credenciais incorretas 2.'));
+          reject(new InternalServerErrorException('Não foi possível buscar o usuário.'));
         }
         resolve();
       });
@@ -239,7 +239,7 @@ export class UsuariosService {
       );
     });
     client.destroy();
-    if (!usuario_ldap.email) throw new UnauthorizedException('Credenciais incorretas.');
+    if (!usuario_ldap.email) throw new BadRequestException('Usuário não encontrado.');
     return {
       login,
       nome: usuario_ldap.nome,
