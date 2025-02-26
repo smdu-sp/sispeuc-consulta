@@ -18,4 +18,6 @@ export class EuResponseDTO {
     criado_em: Date
     @ApiProperty()
     alterado_em: Date
+    @ApiProperty()
+    avatar?: string;
 }

@@ -36,4 +36,8 @@ export class CreateUsuarioDto {
   @IsNumber({}, { message: 'Status inválido!' })
   @ApiProperty()
   status?: boolean;
+
+  @IsString({ message: 'Avatar inválido!' })
+  @ApiProperty()
+  avatar?: string;
 }

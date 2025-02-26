@@ -18,6 +18,8 @@ export class UsuarioResponseDTO {
     criado_em: Date
     @ApiProperty()
     alterado_em: Date
+    @ApiProperty()
+    avatar: string
 }
 
 export class UsuarioPaginadoResponseDTO {
