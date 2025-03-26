@@ -14,6 +14,7 @@ export class CadastrosService {
     busca?: string,
     sistema?: string
   ) {
+    console.time("elapsed: ");
     [pagina, limite] = this.app.verificaPagina(pagina, limite);
     const searchParams = {
       ...(busca && busca !== "" &&
@@ -43,6 +44,7 @@ export class CadastrosService {
       skip: (pagina - 1) * limite,
       take: limite,
     });
+    console.timeEnd("elapsed: ");
     return {
       total: +total,
       pagina: +pagina,

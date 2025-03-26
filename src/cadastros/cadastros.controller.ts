@@ -14,6 +14,7 @@ export class CadastrosController {
     @Query('busca') busca?: string,
     @Query('sistema') sistema?: string,
   ) {
+    console.log('iniciado');
     return this.cadastrosService.buscarTudo(+pagina, +limite, busca, sistema);
   }
 
